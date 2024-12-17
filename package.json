@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "getenv": "^1.0.0",
+    "react-native-vector-icons": "^10.2.0"
+  }
+}
