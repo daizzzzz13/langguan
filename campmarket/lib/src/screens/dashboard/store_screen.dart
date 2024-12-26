@@ -25,32 +25,59 @@ class _StoreScreenState extends State<StoreScreen> {
     _selectedIndex = widget.currentIndex;
   }
 
+  PreferredSizeWidget _buildAppBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(0),
+      child: AppBar(
+        title: const Text(''),
+        backgroundColor: const Color(0xFF4DE165),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SingleChildScrollView(
+      child: Column(
         children: [
-          // Top App Bar with Logo and Title
-          _buildAppBar(),
+          // Custom Header
+          _buildHeader(),
 
           // Category Buttons
           _buildCategorySection(context),
-          const SizedBox(height: 20), // Add some spacing
 
           // Search Bar
           _buildSearchBar(),
 
-          // Store Items Section
-          const Center(
-            child: Text('Store Items'),
+          // Title for Store Items
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 16.0),
+                child: Text(
+                  'Store Items',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 20),
+
+          // Store Items Section
+          // Add your store items widget here
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    );
-  }
+    ),
+    bottomNavigationBar: _buildBottomNavigationBar(),
+  );
+}
 
-  Widget _buildAppBar() {
+   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 10),
       color: const Color(0xFF4DE165),

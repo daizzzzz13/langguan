@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'profile_edit_screen.dart'; // Import the ProfileEditScreen
 import 'user_dashboard.dart';
 import 'cart_screen.dart';
 import 'store_screen.dart';
@@ -10,7 +9,7 @@ import 'exchange_screen.dart';
 import 'sell_screen.dart';
 import 'tutoring_screen.dart';
 import 'rent_screen.dart';
-import 'package:image_picker/image_picker.dart'; // Import the image_picker package
+import 'profile_edit_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -23,10 +22,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _firstName;
   String? _lastName;
   String? _email;
-  String? _profilePictureUrl; // Add profile picture URL
+  String? _profilePictureUrl;
   bool _isLoading = true;
-
-  final ImagePicker _picker = ImagePicker(); // Create an instance of ImagePicker
 
   @override
   void initState() {
@@ -34,7 +31,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserInfo();
   }
 
-  /// Fetch user information from Supabase
   Future<void> _fetchUserInfo() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
@@ -42,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (user != null) {
         final response = await Supabase.instance.client
             .from('profiles')
-            .select('first_name, last_name, email, profile_picture_url') // Include profile_picture_url
+            .select('first_name, last_name, email, profile_picture_url')
             .eq('id', user.id)
             .single();
 
@@ -51,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _firstName = response['first_name'];
             _lastName = response['last_name'];
             _email = response['email'];
-            _profilePictureUrl = response['profile_picture_url']; // Fetch profile picture URL
+            _profilePictureUrl = response['profile_picture_url'];
             _isLoading = false;
           });
         }
@@ -64,19 +60,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Refresh profile information after editing
   void _refreshProfile() {
-    setState(() {
-      _isLoading = true;
-    });
     _fetchUserInfo();
   }
 
-  /// Logout logic
   Future<void> _logout() async {
     try {
       await Supabase.instance.client.auth.signOut();
-      Navigator.pushReplacementNamed(context, '/login'); // Adjust your login route
+      Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
       print('Error logging out: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,14 +83,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             _buildAppBar(),
-            const SizedBox(height: 20),
+
+            // New Buttons Section
             _buildCategorySection(context),
-            const SizedBox(height: 20),
+
+            // Search Bar
             _buildSearchBar(),
-            const SizedBox(height: 20),
+
             _buildProfileInfo(),
             const SizedBox(height: 20),
-            _buildOptionsList(),
+            _buildOptionsList(context),
           ],
         ),
       ),
@@ -123,43 +116,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(color: Colors.blue.shade200, borderRadius: BorderRadius.circular(15)),
-            child: const Text('Pro', style: TextStyle(color: Colors.white)),
-          ),
-          const SizedBox(width: 8),
           const Icon(Icons.notifications, color: Colors.white),
         ],
       ),
     );
   }
 
+  // New Category Section for Buttons
   Widget _buildCategorySection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildCategoryButton('Rent', context),
-          _buildCategoryButton('Exchange', context),
-          _buildCategoryButton('Sell', context),
-          _buildCategoryButton('Tutoring', context),
+          _buildCategoryButton(context, 'Rent', const RentScreen()),
+          _buildCategoryButton(context, 'Exchange', const ExchangeScreen()),
+          _buildCategoryButton(context, 'Sell', const SellScreen()),
+          _buildCategoryButton(context, 'Tutoring', const TutoringScreen()),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryButton(String text, BuildContext context) {
+  Widget _buildCategoryButton(BuildContext context, String text, Widget screen) {
     return ElevatedButton(
       onPressed: () {
-        // Navigate to the corresponding screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => screen),
+        );
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue[200],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
-      child: Text(text, style: const TextStyle(color: Colors.black)),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.black),
+      ),
     );
   }
 
@@ -170,7 +166,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: InputDecoration(
           hintText: 'Search',
           suffixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       ),
     );
@@ -182,13 +180,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 30,
+            radius: 50,
             backgroundColor: Colors.purple.shade200,
-            backgroundImage: _profilePictureUrl != null
-                ? NetworkImage(_profilePictureUrl!) // Show profile picture
+            backgroundImage: _profilePictureUrl != null && _profilePictureUrl!.isNotEmpty
+                ? NetworkImage(_profilePictureUrl!) as ImageProvider
                 : null,
-            child: _profilePictureUrl == null
-                ? const Icon(Icons.person, size: 30, color: Colors.white)
+            child: _profilePictureUrl == null || _profilePictureUrl!.isEmpty
+                ? const Icon(Icons.person, size: 50, color: Colors.white)
                 : null,
           ),
           const SizedBox(width: 16),
@@ -213,6 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             builder: (context) => ProfileEditScreen(
                               firstName: _firstName ?? '',
                               lastName: _lastName ?? '',
+                              profilePictureUrl: _profilePictureUrl ?? '',
                               onUpdate: _refreshProfile,
                             ),
                           ),
@@ -225,10 +224,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _email ?? 'No email available',
                   style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                const Text(
-                  '⭐ 4.9',
-                  style: TextStyle(fontSize: 16, color: Colors.orange),
-                ),
               ],
             ),
           ),
@@ -237,19 +232,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildOptionsList() {
+  Widget _buildOptionsList(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildListTile(Icons.inbox, 'Inbox', () => _navigateTo('Inbox')),
-          _buildListTile(Icons.shopping_cart, 'Rent Item', () => _navigateTo('Rent Item')),
-          _buildListTile(Icons.swap_horiz, 'Exchange', () => _navigateTo('Exchange')),
-          _buildListTile(Icons.label, 'Sell', () => _navigateTo('Sell')),
-          _buildListTile(Icons.video_library, 'Tutoring Video', () => _navigateTo('Tutoring Video')),
-          _buildListTile(Icons.help, 'Help and Support', () => _navigateTo('Help and Support')),
-          _buildListTile(Icons.settings, 'Setting', () => _navigateTo('Setting')),
-          _buildListTile(Icons.logout, 'Logout', _logout), // Added logout button
+          _buildListTile(Icons.inbox, 'Inbox', () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const UserDashboard()));
+          }),
+          _buildListTile(Icons.shopping_cart, 'Rent Item', () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const RentScreen()));
+          }),
+          _buildListTile(Icons.swap_horiz, 'Exchange', () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ExchangeScreen()));
+          }),
+          _buildListTile(Icons.label, 'Sell', () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SellScreen()));
+          }),
+          _buildListTile(Icons.video_library, 'Tutoring Video', () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const TutoringScreen()));
+          }),
+          _buildListTile(Icons.help, 'Help and Support', () {
+            // Navigate to Help and Support screen
+          }),
+          _buildListTile(Icons.settings, 'Settings', () {
+            // Navigate to Settings screen
+          }),
+          _buildListTile(Icons.logout, 'Logout', _logout),
         ],
       ),
     );
@@ -272,32 +281,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
-      currentIndex: 4, // Set to Profile tab
+      currentIndex: 4,
       selectedItemColor: Colors.green,
       unselectedItemColor: Colors.black,
       onTap: (index) {
         switch (index) {
           case 0:
-            Navigator.pushReplacementNamed(context, '/user_dashboard');
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const UserDashboard()));
             break;
           case 1:
-            Navigator.pushReplacementNamed(context, '/store');
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const StoreScreen()));
             break;
           case 2:
-            Navigator.pushReplacementNamed(context, '/add_item');
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AddItemScreen()));
             break;
           case 3:
-            Navigator.pushReplacementNamed(context, '/cart');
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CartScreen()));
             break;
           case 4:
-            // Already on Profile screen, do nothing
-            break;
+            break; // Already on Profile screen
         }
       },
     );
-  }
-
-  void _navigateTo(String title) {
-    print('Navigating to $title'); // Placeholder for navigation logic
   }
 }

@@ -33,17 +33,47 @@ class AdminDashboard extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Campus Marketing'),
       backgroundColor: const Color(0xFF4DE165),
       automaticallyImplyLeading: false,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications),
-          onPressed: () {
-            // Handle notification action
-          },
+      title: Padding(
+        padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/logo.png'),
+                  radius: 20,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Campus Marketing',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Text(
+                  '',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.notifications, color: Colors.white),
+              ],
+            ),
+          ],
         ),
-      ],
+      ),
+      toolbarHeight: 80,
     );
   }
 

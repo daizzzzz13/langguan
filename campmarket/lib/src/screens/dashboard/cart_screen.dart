@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';// Ensure this import is present
+import 'package:flutter/material.dart';
+import 'main_navigation.dart'; // Ensure this import is present
 import 'user_dashboard.dart'; // Import UserDashboard
 import 'store_screen.dart';   // Import StoreScreen
 import 'add_item_screen.dart'; // Import AddItemScreen
@@ -38,15 +39,11 @@ class _CartScreenState extends State<CartScreen> {
             // Custom Header
             _buildHeader(),
 
-            const SizedBox(height: 20),
-
             // Category Buttons
             _buildCategorySection(context),
-            const SizedBox(height: 20),
 
             // Search Bar
             _buildSearchBar(),
-            const SizedBox(height: 20),
 
             // Cart Items Section
             Row(
@@ -64,7 +61,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 10), // Adjusted spacing
 
             // List of cart items
             ListView.builder(

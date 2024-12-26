@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:image_picker/image_picker.dart'; // Import image_picker
-import 'dart:io' show File; // Import dart:io for mobile
-import 'dart:typed_data'; // Import Uint8List for web compatibility
-import 'package:flutter/foundation.dart'; // For kIsWeb check
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:typed_data';
 
 class ProfileEditScreen extends StatefulWidget {
   final String firstName;
   final String lastName;
+  final String? profilePictureUrl;
   final VoidCallback onUpdate;
 
   const ProfileEditScreen({
     Key? key,
     required this.firstName,
     required this.lastName,
+    required this.profilePictureUrl,
     required this.onUpdate,
   }) : super(key: key);
 
@@ -24,11 +25,10 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
-  XFile? _selectedImage; // Variable to hold the selected image
-  Uint8List? _imageBytes; // Preloaded image data for web
+  XFile? _selectedImage;
   bool _isSaving = false;
 
-  final ImagePicker _picker = ImagePicker(); // Instance of ImagePicker
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -37,22 +37,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _lastNameController = TextEditingController(text: widget.lastName);
   }
 
-  /// Function to pick an image
+  /// Pick an image
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
         _selectedImage = image;
       });
-
-      if (kIsWeb) {
-        // Preload image bytes for web
-        _imageBytes = await image.readAsBytes();
-      }
     }
   }
 
-  /// Function to upload the profile picture to Supabase
+  /// Upload profile picture to Supabase
   Future<String?> _uploadProfilePicture(XFile file) async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
@@ -62,38 +57,33 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
 
       final fileName = 'profile_${user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      Uint8List fileBytes;
 
-      if (kIsWeb) {
-        // For web, read file as bytes
-        fileBytes = await file.readAsBytes();
-      } else {
-        // For mobile, use dart:io
-        fileBytes = File(file.path).readAsBytesSync();
-      }
+      // Convert the file to bytes
+      final fileBytes = await file.readAsBytes();
+      final filePath = 'profile_pictures/$fileName';
 
-      // Upload the file to Supabase storage
+      // Upload the file
       final response = await Supabase.instance.client.storage
-          .from('profile_pictures') // Your bucket name
-          .uploadBinary(fileName, fileBytes);
+          .from('profile_pictures')
+          .uploadBinary(filePath, fileBytes);
 
       if (response.isEmpty) {
-        throw Exception('Error uploading profile picture.');
+        throw Exception('Error uploading profile picture: Empty response.');
       }
 
-      // Get the public URL of the uploaded file
+      // Get the public URL
       final publicUrl = Supabase.instance.client.storage
           .from('profile_pictures')
-          .getPublicUrl(fileName);
+          .getPublicUrl(filePath);
 
-      return publicUrl; // Return the public URL of the uploaded image
+      return publicUrl;
     } catch (e) {
       print('Error uploading profile picture: $e');
       return null;
     }
   }
 
-  /// Update user name and profile picture in Supabase
+  /// Update user profile in Supabase
   Future<void> _updateUserProfile() async {
     setState(() {
       _isSaving = true;
@@ -103,17 +93,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       final user = Supabase.instance.client.auth.currentUser;
 
       if (user == null) {
-        throw Exception('User not authenticated.');
+        throw Exception('User is not authenticated.');
       }
 
       String? profilePictureUrl;
 
-      // Upload the profile picture if an image is selected
+      // Upload image if selected
       if (_selectedImage != null) {
         profilePictureUrl = await _uploadProfilePicture(_selectedImage!);
       }
 
-      // Update the user's profile in the database
+      // Update the profile in the database
       await Supabase.instance.client.from('profiles').update({
         'first_name': _firstNameController.text.trim(),
         'last_name': _lastNameController.text.trim(),
@@ -154,10 +144,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               child: CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.purple.shade200,
-                backgroundImage: kIsWeb
-                    ? (_imageBytes != null ? MemoryImage(_imageBytes!) : null)
-                    : (_selectedImage != null ? FileImage(File(_selectedImage!.path)) : null),
-                child: (_selectedImage == null && _imageBytes == null)
+                backgroundImage: _selectedImage != null
+                    ? FileImage(File(_selectedImage!.path))
+                    : widget.profilePictureUrl != null && widget.profilePictureUrl!.isNotEmpty
+                        ? NetworkImage(widget.profilePictureUrl!)
+                        : null,
+                child: _selectedImage == null && (widget.profilePictureUrl == null || widget.profilePictureUrl!.isEmpty)
                     ? const Icon(Icons.person, size: 50, color: Colors.white)
                     : null,
               ),

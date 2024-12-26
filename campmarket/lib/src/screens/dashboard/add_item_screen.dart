@@ -37,11 +37,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
             // Category Buttons
             _buildCategorySection(context),
-            const SizedBox(height: 20), // Consistent spacing
 
             // Search Bar
             _buildSearchBar(),
-            const SizedBox(height: 20), // Add spacing below the search bar
 
             // Add Photo Button
             GestureDetector(
@@ -58,7 +56,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 30),
 
             // Product Name Field
             _buildTextField('Product Name *', 'Enter Product Name', 1000),
