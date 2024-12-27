@@ -252,9 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildListTile(Icons.video_library, 'Tutoring Video', () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const TutoringScreen()));
           }),
-          _buildListTile(Icons.help, 'Help and Support', () {
-            // Navigate to Help and Support screen
-          }),
+
           _buildListTile(Icons.settings, 'Settings', () {
             // Navigate to Settings screen
           }),
